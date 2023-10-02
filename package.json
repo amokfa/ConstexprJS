@@ -2,8 +2,8 @@
   "name": "constexprjs",
   "version": "1.0.0",
   "description": "A static site generator without a DSL",
-  "homepage": "http://knmw.link/posts/constexpr.js",
-  "repository": "https://github.com/knmw/ConstexprJS",
+  "homepage": "http://knmw.link/posts/constexprjs",
+  "repository": "https://github.com/amokfa/ConstexprJS",
   "main": "compiler.js",
   "bin": {
     "constexprjs": "./constexpr.js"
