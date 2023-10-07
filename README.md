@@ -8,4 +8,4 @@ A static site generator without a templating language
 
     npm i -g constexprjs@latest
 
-### [Guides](https://knmw.link/tags/constexpr.js.html)
+### [Guides](http://knmw.link/tags/constexprjs.html)
