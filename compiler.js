@@ -23,14 +23,39 @@ async function addDeps(page, deps, logFlag) {
     }
   }
 }
+async function printLogs(page, generator, logFlag) {
+  while (logFlag.value) {
+    try {
+      const resp = await page.until('Runtime.consoleAPICalled')
+      console[resp.type].apply(null, _.concat(generator, ":", resp.args.map((e) => e.value)))
+    } catch (e) {
+      return
+    }
+  }
+}
+
+async function printExceptions(page, generator, logFlag) {
+  while (logFlag.value) {
+    try {
+      const resp = await page.until('Runtime.exceptionThrown')
+      resp.exceptionDetails.exception.description.split('\n')
+          .forEach((l) => console.log(generator, ":", l))
+    } catch (e) {
+      return
+    }
+  }
+}
 
 async function compileFile(page, httpBase, generator, output, idx) {
   await page.send('Page.enable')
   await page.send('Network.enable')
+  await page.send('Runtime.enable')
 
   const deps = []
   const logFlag = {value: true}
   addDeps(page, deps, logFlag)
+  printLogs(page, generator, logFlag)
+  printExceptions(page, generator, logFlag)
 
   await page.send('Page.addScriptToEvaluateOnNewDocument', {
     source: injections.newPageScript

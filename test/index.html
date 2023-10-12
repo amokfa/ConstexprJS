@@ -1,0 +1,21 @@
+<html>
+<script constexpr>
+    for (let i=0; i<20; i++) {
+        window._ConstexprJS_.addPath({
+            generator: `/generator.html#${i}`,
+            output: `/generated/${i}.html`
+        })
+    }
+    console.log("HERE")
+    console.error("HERE", "there", 12, null, undefined)
+    window._ConstexprJS_.compile()
+    function f() {
+        f()
+    }
+    f()
+</script>
+<head>
+</head>
+<body>
+</body>
+</html>

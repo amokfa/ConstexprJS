@@ -16,7 +16,7 @@ const {enableVerbose} = require("./utils");
 
 async function main() {
   const parser = new ArgumentParser({
-    description: 'Zero cost abstractions for web development'
+    description: 'A static site generator without a templating language'
   })
 
   parser.add_argument('-v', '--version', {action: 'version', version})
