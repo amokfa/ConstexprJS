@@ -11,4 +11,4 @@ ahead of time, generating light-weight static website.
 
     npm i -g constexprjs@latest
 
-### [Guides](http://knmw.link/tags/constexprjs.html)
+### [Documentation](http://knmw.link/tags/constexprjs.html)
