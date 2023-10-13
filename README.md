@@ -1,8 +1,9 @@
-# ConstexprJS
-
+<h1 align="center">ConstexprJS</h1>
+<p align="center">
 [![Website](https://img.shields.io/badge/Website-Online-2B5BAE)](http://knmw.link)
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
 [![npm version](https://badge.fury.io/js/constexprjs.svg)](https://badge.fury.io/js/constexprjs)
+</p>
 
 A static site generator without a templating language. It's a tool that can execute one-shot javascript in your page
 ahead of time, generating light-weight static website.
