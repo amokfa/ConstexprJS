@@ -1,4 +1,7 @@
-A static site generator without a templating language
+# ConstexprJS
+
+A static site generator without a templating language. It's a tool that can execute one-shot javascript in your page
+ahead of time, generating light-weight static website.
 
 ## Demo
 
