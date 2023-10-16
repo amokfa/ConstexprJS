@@ -32,7 +32,7 @@
 
 * Removed automatic HTML discovery
 
-* Added `addDependency` hook ([Guide](http://knmw.link/posts/constexprjs_dependency_resolution.html))
+* Added `addDependency` hook ([Guide](http://www.knmw.link/posts/constexprjs_dependency_resolution.html))
 
 * Replaced `addPaths` with `addPath`
   
@@ -42,7 +42,7 @@
 
 # 0.6.0
 
-* `--entry` option ([Guide](http://knmw.link/posts/constexprjs_entry_points.html))
+* `--entry` option ([Guide](http://www.knmw.link/posts/constexprjs_entry_points.html))
 
 * `log` hook
 
@@ -60,7 +60,7 @@
 
 # 0.5.0
 
-* Generator pages. ([Guide](http://knmw.link/posts/constexprjs_generator_pages.html))
+* Generator pages. ([Guide](http://www.knmw.link/posts/constexprjs_generator_pages.html))
 
 # 0.4.1
 

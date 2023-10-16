@@ -2,7 +2,7 @@
   "name": "constexprjs",
   "version": "1.1.1",
   "description": "A static site generator without a DSL",
-  "homepage": "http://knmw.link/posts/constexprjs",
+  "homepage": "http://www.knmw.link/posts/constexprjs",
   "repository": "https://github.com/amokfa/ConstexprJS",
   "main": "compiler.js",
   "bin": {
@@ -18,7 +18,7 @@
     "utils.js",
     "README.md"
   ],
-  "author": "Sagar Tiwari <iaansagar@gmail.com> (http://knmw.link)",
+  "author": "Sagar Tiwari <iaansagar@gmail.com> (http://www.knmw.link)",
   "license": "ISC",
   "dependencies": {
     "argparse": "^2.0.1",
