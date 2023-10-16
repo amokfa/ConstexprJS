@@ -1,6 +1,6 @@
 <h1 align="center">ConstexprJS</h1>
 <p align="center">
-<a href="https://amokfa.github.io"><img src="https://img.shields.io/badge/Website-Online-2B5BAE"/></a>
+<a href="http://knmw.link"><img src="https://img.shields.io/badge/Website-Online-2B5BAE"/></a>
 <img src="https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E"/>
 <a href="https://badge.fury.io/js/constexprjs"><img src="https://badge.fury.io/js/constexprjs.svg"/></a>
 </p>
@@ -10,7 +10,7 @@ ahead of time, generating light-weight static website.
 
 ## Demo
 
-[This](https://amokfa.github.io) site. ([Sources](https://github.com/amokfa/knmw.link.src))
+[This](http://knmw.link) site. ([Sources](https://github.com/amokfa/knmw.link.src))
 
 ### Installation
 
@@ -18,6 +18,6 @@ ahead of time, generating light-weight static website.
 
 ### Documentation
 
-* Introduction: https://amokfa.github.io/posts/constexprjs.html
-* Hello world: https://amokfa.github.io/tags/constexprjs_hello_world.html
-* Guides: https://amokfa.github.io/tags/constexprjs.html
+* Introduction: http://knmw.link/posts/constexprjs.html
+* Hello world: http://knmw.link/tags/constexprjs_hello_world.html
+* Guides: http://knmw.link/tags/constexprjs.html
