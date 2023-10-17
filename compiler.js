@@ -1,67 +1,35 @@
 const formatHtml = s => s
 const urljoin = require('url-join')
-const fs = require("fs").promises
-const path = require("path")
+const fs = require('fs').promises
+const path = require('path')
 const hp = require('node-html-parser')
-const {logLine} = require("./utils")
+const { logLine } = require('./utils')
 const injections = require('./injections')
-const {fileExists, clog, log, warn, error, align, randomColor} = require("./utils")
+const { fileExists, clog, log, warn, error, align, randomColor } = require('./utils')
 const _ = require('lodash')
-const chalk = require("chalk");
-const {trace, thread} = require("./utils");
+const chalk = require('chalk')
+// eslint-disable-next-line
+const { trace, thread } = require('./utils')
 
-async function addDeps(page, deps, logFlag) {
-  while (logFlag.value) {
-    try {
-      const {request: {url}} = await page.until('Network.requestWillBeSent')
-      deps.push(url)
-    } catch (e) {
-      return
-    }
-  }
-}
-async function printLogs(page, generator, logFlag) {
-  while (logFlag.value) {
-    try {
-      const resp = await page.until('Runtime.consoleAPICalled')
-      console[resp.type].apply(null, _.concat(generator, ":", resp.args.map((e) => e.value)))
-    } catch (e) {
-      return
-    }
-  }
-}
-
-async function printExceptions(page, generator, logFlag) {
-  while (logFlag.value) {
-    try {
-      const resp = await page.until('Runtime.exceptionThrown')
-      resp.exceptionDetails.exception.description.split('\n')
-          .forEach((l) => console.log(generator, ":", l))
-    } catch (e) {
-      return
-    }
-  }
-}
-
-async function compileFile(page, httpBase, jobTimeout, generator, output, idx) {
+async function compileFile (page, httpBase, jobTimeout, generator, output, idx) {
   await page.send('Page.enable')
   await page.send('Network.enable')
   await page.send('Runtime.enable')
 
   const deps = []
-  let killSwitches = [
+  const killSwitches = [
     thread(async () => {
-      const {request: {url}} = await page.until('Network.requestWillBeSent')
+      const { request: { url } } = await page.until('Network.requestWillBeSent')
       deps.push(url)
     }),
     thread(async () => {
       const resp = await page.until('Runtime.consoleAPICalled')
-      console[resp.type].apply(null, _.concat(generator, ":", resp.args.map((e) => e.value)))
+      console[resp.type].apply(null, _.concat(generator, ':', resp.args.map((e) => e.value)))
     }),
     thread(async () => {
       const resp = await page.until('Runtime.exceptionThrown')
       resp.exceptionDetails.exception.description.split('\n')
-          .forEach((l) => console.log(generator, ":", l))
+        .forEach((l) => console.log(generator, ':', l))
     })
   ]
 
@@ -86,7 +54,7 @@ async function compileFile(page, httpBase, jobTimeout, generator, output, idx) {
       }
     }
   } = await page.send('Runtime.evaluate', {
-    expression: injections.compileFinishHooks.replace('${jobTimeout}', jobTimeout),
+    expression: injections.compileFinishHooks.replace('$[jobTimeout]', jobTimeout),
     awaitPromise: true,
     returnByValue: true
   })
@@ -105,7 +73,7 @@ async function compileFile(page, httpBase, jobTimeout, generator, output, idx) {
     })
   } else if (status === 'timeout') {
     return _.assign(result, {
-      status: 'timeout',
+      status: 'timeout'
     })
   }
 
@@ -146,10 +114,10 @@ async function compileFile(page, httpBase, jobTimeout, generator, output, idx) {
   })
 }
 
-const {range} = require('lodash')
+const { range } = require('lodash')
 
-async function compilePaths(config, browser) {
-  const entryPoints = config.paths.map(p => ({generator: p, output: p}))
+async function compilePaths (config, browser) {
+  const entryPoints = config.paths.map(p => ({ generator: p, output: p }))
   const COLORS = range(entryPoints.length).map((i) => randomColor(i))
 
   const allResults = []
@@ -166,8 +134,8 @@ async function compilePaths(config, browser) {
     }
     if (tasks.length < config.jobCount && next < entryPoints.length) {
       const col = COLORS[next]
-      const {targetId} = await browser.send('Target.createTarget', {
-        url: 'about:blank',
+      const { targetId } = await browser.send('Target.createTarget', {
+        url: 'about:blank'
       })
       targetIds[next] = targetId
       taskQueue[next] = compileFile(await browser.attachToTarget(targetId), `http://localhost:${config.port}`, config.jobTimeout, entryPoints[next].generator, entryPoints[next].output, next)
@@ -187,10 +155,10 @@ async function compilePaths(config, browser) {
       if (result.status === 'abort') {
         warn(align(`Page ${result.generator} signalled an abortion, message:`), `"${result.message}"`)
       } else if (result.status === 'timeout') {
-        error(align(`Timeout reached when processing file:`), `${result.generator}`)
+        error(align('Timeout reached when processing file:'), `${result.generator}`)
       }
 
-      await browser.send('Target.closeTarget', {targetId: targetIds[result.idx]})
+      await browser.send('Target.closeTarget', { targetId: targetIds[result.idx] })
       allResults.push(result)
       done++
       delete taskQueue[result.idx]
@@ -223,18 +191,18 @@ async function compilePaths(config, browser) {
         null,
         4
       ))
-      warn(align(`Wrote depfile:`), config.depFile)
+      warn(align('Wrote depfile:'), config.depFile)
     }
   } catch (e) {
-    error(align(`Encountered error when writing depfile:`), e.message)
+    error(align('Encountered error when writing depfile:'), e.message)
   }
   return {
     results,
     linkMapping
-  };
+  }
 }
 
-function mapLinks(html, linkMapping) {
+function mapLinks (html, linkMapping) {
   const root = hp.parse(html)
   root.querySelectorAll('a')
     .filter(a => linkMapping[a.getAttribute('href')])
@@ -242,8 +210,8 @@ function mapLinks(html, linkMapping) {
   return root.toString()
 }
 
-async function compile(config, browser) {
-  const {results, linkMapping} = await compilePaths(config, browser);
+async function compile (config, browser) {
+  const { results, linkMapping } = await compilePaths(config, browser)
   const allDepsSet = new Set()
   results.forEach(res => {
     res.deps.forEach(d => allDepsSet.add(d))
@@ -257,25 +225,25 @@ async function compile(config, browser) {
     htmls[path.join(config.input, results[i].output)] = mapLinks(results[i].html, linkMapping)
   }
 
-  for (let p of Object.keys(htmls)) {
+  for (const p of Object.keys(htmls)) {
     const out = p.replace(config.input, config.output)
     const dir = path.dirname(out)
-    await fs.mkdir(dir, {recursive: true})
+    await fs.mkdir(dir, { recursive: true })
     await fs.writeFile(out, htmls[p])
   }
   if (config.copyResources) {
-    for (let inp of allFilesToCopy) {
-      log(align(`Copying resource:`), `${inp}`)
+    for (const inp of allFilesToCopy) {
+      log(align('Copying resource:'), `${inp}`)
       const out = inp.replace(config.input, config.output)
       if (await fileExists(out)) {
         continue
       }
       const dir = path.dirname(out)
-      await fs.mkdir(dir, {recursive: true})
+      await fs.mkdir(dir, { recursive: true })
       try {
         await fs.copyFile(inp, out)
       } catch (e) {
-        warn(align(`Couldn't copy file:`), `${inp}`)
+        warn(align('Couldn\'t copy file:'), `${inp}`)
       }
     }
   }
@@ -283,5 +251,5 @@ async function compile(config, browser) {
 
 module.exports = {
   compile,
-  compileFile,
+  compileFile
 }

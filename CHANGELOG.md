@@ -1,3 +1,21 @@
+# 1.2.0
+
+* code cleanup
+* replace --noheadless with --headless
+* linting
+
+# 1.1.1
+
+* bugfixes
+
+# 1.1.0
+
+* forward console logs and uncaught exceptions to stdout
+
+# 1.0.0
+
+* bugfixes
+
 # 0.8.{1,2,3}
 
 * bugfixes

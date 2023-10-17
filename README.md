@@ -3,7 +3,10 @@
 <a href="https://amokfa.github.io"><img src="https://img.shields.io/badge/Website-Online-2B5BAE"/></a>
 <img src="https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E"/>
 <a href="https://badge.fury.io/js/constexprjs"><img src="https://badge.fury.io/js/constexprjs.svg"/></a>
+<img src="https://img.shields.io/badge/ESLint-Passing-green.svg"/>
 </p>
+
+    ![ESLint](https://img.shields.io/badge/ESLint-Passing-green.svg)
 
 A static site generator without a templating language. It's a tool that can execute one-shot javascript in your page
 ahead of time, generating light-weight static website.

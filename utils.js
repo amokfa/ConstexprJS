@@ -1,18 +1,18 @@
-const fs = require('fs');
-const fsp = require('fs').promises;
-const path = require('path');
+const fs = require('fs')
+const fsp = require('fs').promises
+const path = require('path')
 
-async function htmlFiles(fsBase, dir, isExcluded) {
-  let files = (await fsp.readdir(dir)).filter(e => !e.startsWith('.')).map(file => path.join(dir, file));
-  let stats = await Promise.all(files.map(file => fsp.stat(file)))
+async function htmlFiles (fsBase, dir, isExcluded) {
+  const files = (await fsp.readdir(dir)).filter(e => !e.startsWith('.')).map(file => path.join(dir, file))
+  const stats = await Promise.all(files.map(file => fsp.stat(file)))
   const htmls = []
-  for (let i=0; i<files.length; i++) {
+  for (let i = 0; i < files.length; i++) {
     if (stats[i].isFile() && files[i].toLowerCase().endsWith('.html')) {
-      let path = files[i].replace(fsBase, '');
+      const path = files[i].replace(fsBase, '')
       if (isExcluded(path)) {
-        warn(align(`Ignoring path:`), `${path}`)
+        warn(align('Ignoring path:'), `${path}`)
       } else {
-        log(align(`Found path:`), `${path}`)
+        log(align('Found path:'), `${path}`)
         htmls.push(path)
       }
     } else if (stats[i].isDirectory()) {
@@ -22,13 +22,13 @@ async function htmlFiles(fsBase, dir, isExcluded) {
   return htmls
 }
 
-async function sleep(n) {
+async function sleep (n) {
   return new Promise((resolve) => {
     setTimeout(() => resolve(), n)
   })
 }
 
-function fileExists(f) {
+function fileExists (f) {
   return new Promise((resolve) => {
     fs.access(f, (err) => {
       if (err) {
@@ -48,25 +48,16 @@ const isChildOf = (child, parent) => {
 }
 
 let verbose = false
-function enableVerbose() {
+function enableVerbose () {
   verbose = true
 }
 
 const chalk = require('chalk')
-const bg1 = '#1a1a1a'
-const bg2 = '#2b2b2b'
-let evenLine = true
-function logLine(c, ...args) {
+function logLine (c, ...args) {
   console.log(c(...args))
-  // if (evenLine) {
-  //   console.log(c.bgHex(bg1)(...args))
-  // } else {
-  //   console.log(c.bgHex(bg2)(...args))
-  // }
-  // evenLine = !evenLine
 }
 
-function clog(color, ...args) {
+function clog (color, ...args) {
   if (verbose) {
     if (color) {
       logLine(chalk.hex(color), ...args)
@@ -75,17 +66,17 @@ function clog(color, ...args) {
     }
   }
 }
-function log(...args) {
+function log (...args) {
   clog(false, ...args)
 }
-function warn(...args) {
+function warn (...args) {
   clog('#ffff00', ...args)
 }
-function error(...args) {
+function error (...args) {
   logLine(chalk.hex('#ff0000').underline, ...args)
 }
 
-function align(s) {
+function align (s) {
   if (s.length >= 60) {
     return s + '\n' + '-'.repeat(60)
   } else {
@@ -94,16 +85,16 @@ function align(s) {
 }
 
 const fac = 0.7
-function tooClose(r1, r2, r3) {
-  const sorted = [r1, r2, r3].sort((a, b) => a-b)
+function tooClose (r1, r2, r3) {
+  const sorted = [r1, r2, r3].sort((a, b) => a - b)
   // console.log(sorted)
-  return sorted[0]/sorted[1] > fac || sorted[1]/sorted[2] > fac
+  return sorted[0] / sorted[1] > fac || sorted[1] / sorted[2] > fac
 }
 
-function shuffle(rand, arr) {
-  let result = []
+function shuffle (rand, arr) {
+  const result = []
   while (arr.length !== 0) {
-    let idx = rand(arr.length)
+    const idx = rand(arr.length)
     result.push(arr[idx])
     arr.splice(idx, 1)
   }
@@ -111,8 +102,7 @@ function shuffle(rand, arr) {
 }
 
 const random = require('random-seed')
-const {clamp} = require("lodash");
-function randomColor(s) {
+function randomColor (s) {
   const rand = random.create(s)
   let r
   let g
@@ -121,7 +111,7 @@ function randomColor(s) {
     const r1 = rand(200) + 56
     const r2 = rand(200) + 56
     const r3 = rand(200) + 56
-    let cols = shuffle(rand, [r1, r2, r3])
+    const cols = shuffle(rand, [r1, r2, r3])
     r = cols[0]
     g = cols[1]
     b = cols[2]
@@ -130,10 +120,9 @@ function randomColor(s) {
 }
 
 if (require.main === module) {
-  const rc = require('randomcolor')
   verbose = true
-  for (let i=0; i<100; i++) {
-    let color = randomColor(i);
+  for (let i = 0; i < 100; i++) {
+    const color = randomColor(i)
     // let color = rc({
     //   luminosity: 'bright'
     // });
@@ -141,9 +130,10 @@ if (require.main === module) {
   }
 }
 
-function thread(afn) {
+function thread (afn) {
   let ended = false;
   (async () => {
+    // eslint-disable-next-line
     while (!ended) {
       try {
         await afn()
@@ -157,7 +147,7 @@ function thread(afn) {
   }
 }
 
-function trace(value) {
+function trace (value) {
   console.log(value)
   return value
 }
@@ -176,5 +166,5 @@ module.exports = {
   enableVerbose,
   isChildOf,
   thread,
-  trace,
+  trace
 }

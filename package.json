@@ -1,12 +1,16 @@
 {
   "name": "constexprjs",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "A static site generator without a DSL",
   "homepage": "https://amokfa.github.io/posts/constexprjs",
   "repository": "https://github.com/amokfa/ConstexprJS",
   "main": "compiler.js",
   "bin": {
     "constexprjs": "./constexpr.js"
+  },
+  "scripts": {
+    "lint": "eslint '**/*.js'",
+    "fix": "eslint '**/*.js' --fix"
   },
   "keywords": [
     "static site generator"
@@ -29,5 +33,11 @@
     "node-html-parser": "^3.1.0",
     "random-seed": "^0.3.0",
     "url-join": "^4.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.51.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.28.1"
   }
 }

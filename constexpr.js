@@ -1,20 +1,21 @@
 #!/usr/bin/env node
 
-const {spawnChrome} = require("chrome-debugging-client");
+const { spawnChrome } = require('chrome-debugging-client')
 
-const {ArgumentParser} = require('argparse')
-const {version} = require('./package.json')
+const { ArgumentParser } = require('argparse')
+const { version } = require('./package.json')
 
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
-const {trace} = require("./utils");
-const {compile} = require("./compiler");
-const {log, error, align} = require("./utils");
-const {enableVerbose} = require("./utils");
+// eslint-disable-next-line
+const { trace } = require('./utils')
+const { compile } = require('./compiler')
+const { error } = require('./utils')
+const { enableVerbose } = require('./utils')
 const express = require('express')
 
-async function main() {
+async function main () {
   const parser = createArgParser()
   const argv = parser.parse_args()
 
@@ -29,7 +30,7 @@ async function main() {
     copyResources: !argv.skipResources,
     paths: argv.entryPoints,
     input: path.resolve(argv.input),
-    output: path.resolve(argv.output),
+    output: path.resolve(argv.output)
   }
 
   if (!fs.existsSync(config.output)) {
@@ -50,14 +51,14 @@ async function main() {
 
   const app = express()
   app.use(express.static(config.input))
-  let server = app.listen(0)
+  const server = app.listen(0)
   config.port = server.address().port
 
   try {
     const chrome = spawnChrome({
       headless: argv.headless
-    });
-    const browser = chrome.connection;
+    })
+    const browser = chrome.connection
 
     await compile(config, browser)
 
@@ -68,12 +69,12 @@ async function main() {
   await server.close()
 }
 
-function createArgParser() {
+function createArgParser () {
   const parser = new ArgumentParser({
     description: 'A static site generator without a templating language'
   })
 
-  parser.add_argument('-v', '--version', {action: 'version', version})
+  parser.add_argument('-v', '--version', { action: 'version', version })
   parser.add_argument('--input', {
     required: true,
     metavar: 'INPUT_DIRECTORY',
