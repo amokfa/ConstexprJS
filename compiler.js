@@ -8,10 +8,7 @@ const injections = require('./injections')
 const {fileExists, clog, log, warn, error, align, randomColor} = require("./utils")
 const _ = require('lodash')
 const chalk = require("chalk");
-const {trace} = require("./utils");
-
-let jobsCount = 5
-let jobTimeout = 999999999
+const {trace, thread} = require("./utils");
 
 async function addDeps(page, deps, logFlag) {
   while (logFlag.value) {
@@ -46,16 +43,27 @@ async function printExceptions(page, generator, logFlag) {
   }
 }
 
-async function compileFile(page, httpBase, generator, output, idx) {
+async function compileFile(page, httpBase, jobTimeout, generator, output, idx) {
   await page.send('Page.enable')
   await page.send('Network.enable')
   await page.send('Runtime.enable')
 
   const deps = []
-  const logFlag = {value: true}
-  addDeps(page, deps, logFlag)
-  printLogs(page, generator, logFlag)
-  printExceptions(page, generator, logFlag)
+  let killSwitches = [
+    thread(async () => {
+      const {request: {url}} = await page.until('Network.requestWillBeSent')
+      deps.push(url)
+    }),
+    thread(async () => {
+      const resp = await page.until('Runtime.consoleAPICalled')
+      console[resp.type].apply(null, _.concat(generator, ":", resp.args.map((e) => e.value)))
+    }),
+    thread(async () => {
+      const resp = await page.until('Runtime.exceptionThrown')
+      resp.exceptionDetails.exception.description.split('\n')
+          .forEach((l) => console.log(generator, ":", l))
+    })
+  ]
 
   await page.send('Page.addScriptToEvaluateOnNewDocument', {
     source: injections.newPageScript
@@ -120,7 +128,7 @@ async function compileFile(page, httpBase, generator, output, idx) {
       lineSeparator: '\n'
     }
   )
-  logFlag.value = false
+  killSwitches.forEach((s) => s())
   const constexprResources = [...deducedExclusions]
   constexprResources.push(...addedExclusions)
 
@@ -140,9 +148,9 @@ async function compileFile(page, httpBase, generator, output, idx) {
 
 const {range} = require('lodash')
 
-async function compilePaths(_paths, httpBase, browser, depFile) {
-  const paths = _paths.map(p => ({generator: p, output: p}))
-  const COLORS = range(paths.length).map((i) => randomColor(i))
+async function compilePaths(config, browser) {
+  const entryPoints = config.paths.map(p => ({generator: p, output: p}))
+  const COLORS = range(entryPoints.length).map((i) => randomColor(i))
 
   const allResults = []
   const results = []
@@ -153,18 +161,18 @@ async function compilePaths(_paths, httpBase, browser, depFile) {
   let done = 0
   while (true) {
     const tasks = Object.values(taskQueue)
-    if (next === paths.length && tasks.length === 0) {
+    if (next === entryPoints.length && tasks.length === 0) {
       break
     }
-    if (tasks.length < jobsCount && next < paths.length) {
+    if (tasks.length < config.jobCount && next < entryPoints.length) {
       const col = COLORS[next]
       const {targetId} = await browser.send('Target.createTarget', {
         url: 'about:blank',
       })
       targetIds[next] = targetId
-      taskQueue[next] = compileFile(await browser.attachToTarget(targetId), httpBase, paths[next].generator, paths[next].output, next)
+      taskQueue[next] = compileFile(await browser.attachToTarget(targetId), `http://localhost:${config.port}`, config.jobTimeout, entryPoints[next].generator, entryPoints[next].output, next)
       next++
-      clog(col, align(`Queued file #${next}:`), `${paths[next - 1].output}`)
+      clog(col, align(`Queued file #${next}:`), `${entryPoints[next - 1].output}`)
     } else {
       let result
       try {
@@ -189,8 +197,8 @@ async function compilePaths(_paths, httpBase, browser, depFile) {
       if (result.status === 'ok') {
         result.addedPaths.forEach(
           p => {
-            paths.push(p)
-            COLORS.push(randomColor(paths.length))
+            entryPoints.push(p)
+            COLORS.push(randomColor(entryPoints.length))
             if (p.generator !== p.output) {
               if (linkMapping[p.generator]) {
                 warn(`Output paths: "${linkMapping[p.generator]}" and "${p.output}" both use the same generator call: "${p.generator}"`)
@@ -200,14 +208,14 @@ async function compilePaths(_paths, httpBase, browser, depFile) {
             }
           }
         )
-        clog(COLORS[result.idx], align(`(${done}/${paths.length}) Finished:`), `${result.generator}`)
+        clog(COLORS[result.idx], align(`(${done}/${entryPoints.length}) Finished:`), `${result.generator}`)
         results.push(result)
       }
     }
   }
   try {
-    if (depFile) {
-      await fs.writeFile(depFile, JSON.stringify(
+    if (config.depFile) {
+      await fs.writeFile(config.depFile, JSON.stringify(
         {
           commandLine: process.argv,
           allResults: allResults.map(res => _.omit(res, 'html'))
@@ -215,7 +223,7 @@ async function compilePaths(_paths, httpBase, browser, depFile) {
         null,
         4
       ))
-      warn(align(`Wrote depfile:`), depFile)
+      warn(align(`Wrote depfile:`), config.depFile)
     }
   } catch (e) {
     error(align(`Encountered error when writing depfile:`), e.message)
@@ -234,33 +242,31 @@ function mapLinks(html, linkMapping) {
   return root.toString()
 }
 
-async function compile(fsBase, outFsBase, httpBase, paths, browser, depFile, copyResources) {
-  log(align(`Using job count:`), `${jobsCount}`)
-  log(align(`Using job timeout:`), `${jobTimeout}`)
-  const {results, linkMapping} = await compilePaths(paths, httpBase, browser, depFile);
+async function compile(config, browser) {
+  const {results, linkMapping} = await compilePaths(config, browser);
   const allDepsSet = new Set()
   results.forEach(res => {
     res.deps.forEach(d => allDepsSet.add(d))
     delete res.deps
   })
   const allDeps = [...allDepsSet]
-  const allFilesToCopy = allDeps.map(dep => path.join(fsBase, dep))
+  const allFilesToCopy = allDeps.map(dep => path.join(config.input, dep))
 
   const htmls = {}
   for (let i = 0; i < results.length; i++) {
-    htmls[path.join(fsBase, results[i].output)] = mapLinks(results[i].html, linkMapping)
+    htmls[path.join(config.input, results[i].output)] = mapLinks(results[i].html, linkMapping)
   }
 
   for (let p of Object.keys(htmls)) {
-    const out = p.replace(fsBase, outFsBase)
+    const out = p.replace(config.input, config.output)
     const dir = path.dirname(out)
     await fs.mkdir(dir, {recursive: true})
     await fs.writeFile(out, htmls[p])
   }
-  if (copyResources) {
+  if (config.copyResources) {
     for (let inp of allFilesToCopy) {
       log(align(`Copying resource:`), `${inp}`)
-      const out = inp.replace(fsBase, outFsBase)
+      const out = inp.replace(config.input, config.output)
       if (await fileExists(out)) {
         continue
       }
@@ -278,6 +284,4 @@ async function compile(fsBase, outFsBase, httpBase, paths, browser, depFile, cop
 module.exports = {
   compile,
   compileFile,
-  setJobCount: (n) => jobsCount = n,
-  setJobTimeout: (n) => jobTimeout = n
 }

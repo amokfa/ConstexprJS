@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-const {htmlFiles, isPortFree} = require("./utils");
 const {spawnChrome} = require("chrome-debugging-client");
 
 const {ArgumentParser} = require('argparse')
@@ -10,11 +9,66 @@ const fs = require('fs')
 const os = require('os')
 const path = require('path')
 const {trace} = require("./utils");
-const {setJobCount, setJobTimeout, compile} = require("./compiler");
+const {compile} = require("./compiler");
 const {log, error, align} = require("./utils");
 const {enableVerbose} = require("./utils");
+const express = require('express')
 
 async function main() {
+  const parser = createArgParser()
+  const argv = parser.parse_args()
+
+  if (argv.verbose) {
+    enableVerbose()
+  }
+
+  const config = {
+    depFile: argv.depFile,
+    jobCount: argv.jobcount,
+    jobTimeout: argv.jobtimeout * 1000,
+    copyResources: !argv.skipResources,
+    paths: argv.entryPoints,
+    input: path.resolve(argv.input),
+    output: path.resolve(argv.output),
+  }
+
+  if (!fs.existsSync(config.output)) {
+    fs.mkdirSync(config.output)
+  }
+  if (!fs.lstatSync(config.output).isDirectory()) {
+    parser.print_help()
+    process.exit(1)
+  }
+  if (config.input === config.output) {
+    error('"input" and "output" must be different directories')
+    process.exit(1)
+  }
+  if (argv.entryPoints.length === 0) {
+    error('Must provide at least one entry point')
+    process.exit(1)
+  }
+
+  const app = express()
+  app.use(express.static(config.input))
+  let server = app.listen(0)
+  config.port = server.address().port
+
+  try {
+    const chrome = spawnChrome({
+      headless: argv.headless
+    });
+    const browser = chrome.connection;
+
+    await compile(config, browser)
+
+    await chrome.dispose()
+  } catch (e) {
+    console.log(e)
+  }
+  await server.close()
+}
+
+function createArgParser() {
   const parser = new ArgumentParser({
     description: 'A static site generator without a templating language'
   })
@@ -49,107 +103,21 @@ async function main() {
   parser.add_argument('--jobtimeout', {
     help: 'Time in milliseconds for which the compiler will wait for the pages to render',
     type: 'int',
-    default: 999999999
+    default: 10
   })
   parser.add_argument('--depfile', {
     help: 'A JSON object containing the command line arguments, file dependency, compilation results will be written to this path'
   })
-  parser.add_argument('--noheadless', {
+  parser.add_argument('--headless', {
     action: 'store_true',
-    help: 'Do not run chrome in headless mode, can be used for debugging using browser console'
+    help: 'Run chrome in headless mode, can be used for running in environments without display server'
   })
   parser.add_argument('--verbose', {
     action: 'store_true',
     help: 'Enable verbose logging'
   })
 
-  const argv = parser.parse_args()
-
-  if (argv.verbose) {
-    enableVerbose()
-  }
-  if (argv.jobcount) {
-    setJobCount(argv.jobcount)
-  }
-  if (argv.jobtimeout) {
-    setJobTimeout(argv.jobtimeout)
-  }
-  const depFile = argv.depfile
-
-  const input = path.resolve(argv.input)
-  const output = path.resolve(argv.output)
-
-  if (
-    !fs.existsSync(input) || !fs.lstatSync(input).isDirectory() ||
-    fs.existsSync(output) && !fs.lstatSync(output).isDirectory()
-  ) {
-    parser.print_help()
-    process.exit(1)
-  }
-
-  if (!fs.existsSync(output)) {
-    fs.mkdirSync(output)
-  }
-
-  {
-    if (input === output) {
-      error('"input" and "output" must be different directories')
-      process.exit(1)
-    }
-  }
-
-  if (argv.entryPoints.length === 0) {
-    error('Must provide at least one entry point')
-    process.exit(1)
-  }
-  argv.entryPoints.forEach(_p => {
-    const p = path.join(input, _p)
-    if (!fs.lstatSync(p).isFile()) {
-      error(`entry point: ${p} is not a regular file`)
-      process.exit(1)
-    }
-    let readable = true
-    try {
-      fs.accessSync(p, fs.constants.R_OK)
-    } catch (e) {
-      readable = false
-    }
-    if (!readable) {
-      error(`entry point: ${p} is not readable`)
-      process.exit(1)
-    }
-  })
-
-  const express = require('express')
-  const app = express()
-  app.use(express.static(input))
-  let port = 9045
-  let server = null
-  while (server === null) {
-    port++
-    try {
-      server = await new Promise((resolve, reject) => {
-        const tempServer = app.listen(port, () => resolve(tempServer)).on('error', () => reject())
-      })
-      log(align(`Using port:`), `${port}`)
-    } catch (e) {
-      log(`Port ${port} occupied`)
-    }
-  }
-
-  try {
-    const chrome = spawnChrome({
-      headless: !argv.noheadless
-    });
-    const browser = chrome.connection;
-
-    await compile(input, output, `http://localhost:${port}`, argv.entryPoints, browser, depFile, !argv.skipResources)
-
-    await chrome.dispose()
-  } catch (e) {
-    console.log(e)
-  }
-  await server.close()
+  return parser
 }
 
 main()
