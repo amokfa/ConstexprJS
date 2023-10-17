@@ -1,6 +1,6 @@
 {
   "name": "constexprjs",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A static site generator without a DSL",
   "homepage": "https://amokfa.github.io/posts/constexprjs",
   "repository": "https://github.com/amokfa/ConstexprJS",
@@ -13,7 +13,12 @@
     "fix": "eslint '**/*.js' --fix"
   },
   "keywords": [
-    "static site generator"
+    "static site generator",
+    "jekyll",
+    "compiler",
+    "next.js",
+    "nuxt.js",
+    "nest.js"
   ],
   "files": [
     "constexpr.js",

@@ -1,4 +1,4 @@
-# 1.2.0
+# 1.2.{0,1}
 
 * code cleanup
 * replace --noheadless with --headless
