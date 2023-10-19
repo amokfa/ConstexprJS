@@ -24,7 +24,7 @@
     document.querySelectorAll('[constexpr]').forEach(
       el => el.remove()
     )
-    callWhenAvailable(() => window._ConstexprJS_.triggerCompilationHook)
+    setTimeout(() => callWhenAvailable(() => window._ConstexprJS_.triggerCompilationHook), 0)
   }
   window._ConstexprJS_.abort = (message) => {
     callWhenAvailable(() => window._ConstexprJS_.compilationErrorHook, message)

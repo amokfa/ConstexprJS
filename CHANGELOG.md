@@ -1,3 +1,8 @@
+# 1.2.2
+
+* depfile not generating bugfix
+* some resources not getting detected bugfix
+
 # 1.2.{0,1}
 
 * code cleanup

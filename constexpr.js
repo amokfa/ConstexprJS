@@ -24,7 +24,7 @@ async function main () {
   }
 
   const config = {
-    depFile: argv.depFile,
+    depFile: argv.depfile,
     jobCount: argv.jobcount,
     jobTimeout: argv.jobtimeout * 1000,
     copyResources: !argv.skipResources,

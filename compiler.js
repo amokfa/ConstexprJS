@@ -15,6 +15,7 @@ async function compileFile (page, httpBase, jobTimeout, generator, output, idx) 
   await page.send('Page.enable')
   await page.send('Network.enable')
   await page.send('Runtime.enable')
+  await page.send('Network.clearBrowserCache')
 
   const deps = []
   const killSwitches = [
