@@ -44,50 +44,24 @@ async function compileFile (page, httpBase, jobTimeout, generator, output, idx) 
 
   const {
     result: {
-      value: {
-        status,
-        message,
-        deducedExclusions: _deducedExclusions,
-        addedExclusions,
-        addedDependencies,
-        addedPaths,
-        logs
-      }
+      value: result
     }
   } = await page.send('Runtime.evaluate', {
     expression: injections.compileFinishHooks.replace('$[jobTimeout]', jobTimeout),
     awaitPromise: true,
     returnByValue: true
   })
+  result.idx = idx
+  result.output = output
 
-  const result = {
-    generator,
-    output,
-    logs,
-    idx
+
+  if (result.status === 'abort' || result.status === 'timeout') {
+    return result
   }
 
-  if (status === 'abort') {
-    return _.assign(result, {
-      status: 'abortion',
-      message
-    })
-  } else if (status === 'timeout') {
-    return _.assign(result, {
-      status: 'timeout'
-    })
-  }
+  result.deducedExclusions = result.deducedExclusions.filter(e => e.startsWith(httpBase)).map(e => e.replace(httpBase, ''))
 
-  const deducedExclusions = _deducedExclusions.filter(e => e.startsWith(httpBase)).map(e => e.replace(httpBase, ''))
-
-  _.assign(result, {
-    addedPaths,
-    addedExclusions,
-    addedDependencies,
-    deducedExclusions
-  })
-
-  addedPaths.forEach(p => log(`${generator} added extra path ${p.output} to be generated using ${p.generator}`))
+  result.addedPaths.forEach(p => log(`${generator} added extra path ${p.output} to be generated using ${p.generator}`))
 
   const html = formatHtml(
     (await page.send('DOM.getOuterHTML', {
@@ -98,19 +72,18 @@ async function compileFile (page, httpBase, jobTimeout, generator, output, idx) 
     }
   )
   killSwitches.forEach((s) => s())
-  const constexprResources = [...deducedExclusions]
-  constexprResources.push(...addedExclusions)
+  const allExclusions = [...result.deducedExclusions]
+  allExclusions.push(...result.addedExclusions)
 
   const finalDeps = deps
-    .filter(e => !constexprResources.some(ex => urljoin(httpBase, ex) === e))
+    .filter(e => !allExclusions.some(ex => urljoin(httpBase, ex) === e))
     .filter(e => e.startsWith(httpBase))
     .map(e => e.replace(httpBase, ''))
     .filter(e => !e.endsWith(generator))
-  finalDeps.push(...addedDependencies)
+  finalDeps.push(...result.addedDependencies)
   finalDeps.sort()
 
   return _.assign(result, {
-    status: 'ok',
     html,
     deps: finalDeps
   })
@@ -238,13 +211,14 @@ async function compile (config, browser) {
       log(align('Copying resource:'), `${inp}`)
       const out = inp.replace(config.input, config.output)
       if (await fileExists(out)) {
-        continue
+        await fs.rm(out)
       }
       const dir = path.dirname(out)
       await fs.mkdir(dir, { recursive: true })
       try {
-        await fs.copyFile(inp, out)
+        await fs.cp(inp, out, {recursive: true})
       } catch (e) {
+        console.log(e)
         warn(align('Couldn\'t copy file:'), `${inp}`)
       }
     }

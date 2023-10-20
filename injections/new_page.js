@@ -20,7 +20,9 @@
   }
 
   window._ConstexprJS_.compile = () => {
-    window._ConstexprJS_.deducedExclusions = [...document.querySelectorAll('script[constexpr][src]')].map(el => el.src)
+    window._ConstexprJS_.deducedExclusions = [
+        ...document.querySelectorAll('[constexpr][src]'),
+    ].map(el => el.src)
     document.querySelectorAll('[constexpr]').forEach(
       el => el.remove()
     )
