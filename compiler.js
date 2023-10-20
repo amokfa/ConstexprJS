@@ -107,6 +107,7 @@ async function compileFile (page, httpBase, jobTimeout, generator, output, idx) 
     .map(e => e.replace(httpBase, ''))
     .filter(e => !e.endsWith(generator))
   finalDeps.push(...addedDependencies)
+  finalDeps.sort()
 
   return _.assign(result, {
     status: 'ok',
