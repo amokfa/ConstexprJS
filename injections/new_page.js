@@ -3,7 +3,6 @@
   window._ConstexprJS_.addedPaths = []
   window._ConstexprJS_.addedExclusions = []
   window._ConstexprJS_.addedDependencies = []
-  window._ConstexprJS_.loggedStatements = []
   window._ConstexprJS_.triggerCompilationHook = null
   window._ConstexprJS_.compilationErrorHook = null
 
@@ -48,8 +47,5 @@
       throw new Error('"path" must be a string')
     }
     window._ConstexprJS_.addedDependencies.push(path)
-  }
-  window._ConstexprJS_.log = (msg) => {
-    return window._ConstexprJS_.loggedStatements.push(msg)
   }
 })()

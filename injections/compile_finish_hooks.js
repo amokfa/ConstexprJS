@@ -6,8 +6,7 @@ new Promise((resolve) => {
     deducedExclusions: window._ConstexprJS_.deducedExclusions,
     addedExclusions: window._ConstexprJS_.addedExclusions,
     addedDependencies: window._ConstexprJS_.addedDependencies,
-    addedPaths: window._ConstexprJS_.addedPaths,
-    logs: window._ConstexprJS_.loggedStatements
+    addedPaths: window._ConstexprJS_.addedPaths
   })
   window._ConstexprJS_.compilationErrorHook = (message) => resolve({ status: 'abort', message })
 })

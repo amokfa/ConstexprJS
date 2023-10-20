@@ -126,7 +126,6 @@ async function compilePaths (config, browser) {
         process.exit(1)
       }
 
-      result.logs.forEach((msg) => logLine(chalk.hex(COLORS[result.idx]), `${result.generator}: ${msg}`))
       if (result.status === 'abort') {
         warn(align(`Page ${result.generator} signalled an abortion, message:`), `"${result.message}"`)
       } else if (result.status === 'timeout') {
