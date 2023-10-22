@@ -11,17 +11,21 @@ const chalk = require('chalk')
 // eslint-disable-next-line
 const { trace, thread } = require('./utils')
 
-async function compileFile (page, httpBase, jobTimeout, generator, output, idx) {
+async function compileFile (browser, httpBase, jobTimeout, generator, output, idx) {
+  const { targetId } = await browser.send('Target.createTarget', {
+    url: 'about:blank'
+  })
+  const page = await browser.attachToTarget(targetId)
   await page.send('Page.enable')
   await page.send('Network.enable')
   await page.send('Runtime.enable')
   await page.send('Network.clearBrowserCache')
 
-  const deps = []
+  const deps = new Set()
   const killSwitches = [
     thread(async () => {
       const { request: { url } } = await page.until('Network.requestWillBeSent')
-      deps.push(url)
+      deps.add(url)
     }),
     thread(async () => {
       const resp = await page.until('Runtime.consoleAPICalled')
@@ -53,7 +57,7 @@ async function compileFile (page, httpBase, jobTimeout, generator, output, idx) 
   })
   result.idx = idx
   result.output = output
-
+  result.generator = generator
 
   if (result.status === 'abort' || result.status === 'timeout') {
     return result
@@ -71,11 +75,14 @@ async function compileFile (page, httpBase, jobTimeout, generator, output, idx) 
       lineSeparator: '\n'
     }
   )
-  killSwitches.forEach((s) => s())
+
+  await browser.send('Target.closeTarget', { targetId })
+  Promise.all(killSwitches.map(s => s()))
+  result.deducedDependencies.forEach(d => deps.add(d))
   const allExclusions = [...result.deducedExclusions]
   allExclusions.push(...result.addedExclusions)
 
-  const finalDeps = deps
+  const finalDeps = [...deps]
     .filter(e => !allExclusions.some(ex => urljoin(httpBase, ex) === e))
     .filter(e => e.startsWith(httpBase))
     .map(e => e.replace(httpBase, ''))
@@ -99,7 +106,6 @@ async function compilePaths (config, browser) {
   const results = []
   const linkMapping = {}
   const taskQueue = {}
-  const targetIds = {}
   let next = 0
   let done = 0
   while (true) {
@@ -109,11 +115,7 @@ async function compilePaths (config, browser) {
     }
     if (tasks.length < config.jobCount && next < entryPoints.length) {
       const col = COLORS[next]
-      const { targetId } = await browser.send('Target.createTarget', {
-        url: 'about:blank'
-      })
-      targetIds[next] = targetId
-      taskQueue[next] = compileFile(await browser.attachToTarget(targetId), `http://localhost:${config.port}`, config.jobTimeout, entryPoints[next].generator, entryPoints[next].output, next)
+      taskQueue[next] = compileFile(browser, `http://localhost:${config.port}`, config.jobTimeout, entryPoints[next].generator, entryPoints[next].output, next)
       next++
       clog(col, align(`Queued file #${next}:`), `${entryPoints[next - 1].output}`)
     } else {
@@ -132,7 +134,6 @@ async function compilePaths (config, browser) {
         error(align('Timeout reached when processing file:'), `${result.generator}`)
       }
 
-      await browser.send('Target.closeTarget', { targetId: targetIds[result.idx] })
       allResults.push(result)
       done++
       delete taskQueue[result.idx]
@@ -210,7 +211,7 @@ async function compile (config, browser) {
       log(align('Copying resource:'), `${inp}`)
       const out = inp.replace(config.input, config.output)
       if (await fileExists(out)) {
-        await fs.rm(out)
+        await fs.rm(out, {recursive: true})
       }
       const dir = path.dirname(out)
       await fs.mkdir(dir, { recursive: true })

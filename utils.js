@@ -132,7 +132,7 @@ if (require.main === module) {
 
 function thread (afn) {
   let ended = false;
-  (async () => {
+  let promise = (async () => {
     // eslint-disable-next-line
     while (!ended) {
       try {
@@ -142,8 +142,9 @@ function thread (afn) {
       }
     }
   })()
-  return () => {
+  return async () => {
     ended = true
+    await promise
   }
 }
 

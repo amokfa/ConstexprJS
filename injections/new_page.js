@@ -3,6 +3,7 @@
   window._ConstexprJS_.addedPaths = []
   window._ConstexprJS_.addedExclusions = []
   window._ConstexprJS_.addedDependencies = []
+  window._ConstexprJS_.deducedDependencies = []
   window._ConstexprJS_.triggerCompilationHook = null
   window._ConstexprJS_.compilationErrorHook = null
 
@@ -25,6 +26,10 @@
     document.querySelectorAll('[constexpr]').forEach(
       el => el.remove()
     )
+    window._ConstexprJS_.deducedDependencies = [
+      ...document.querySelectorAll('[src]'),
+    ].map(el => el.src)
+
     setTimeout(() => callWhenAvailable(() => window._ConstexprJS_.triggerCompilationHook), 0)
   }
   window._ConstexprJS_.abort = (message) => {
