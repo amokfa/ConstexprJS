@@ -1,3 +1,7 @@
+# 1.3.{0,1}
+
+* Dependency resolution bugfix
+
 # 1.2.2
 
 * depfile not generating bugfix

@@ -3,11 +3,9 @@ const urljoin = require('url-join')
 const fs = require('fs').promises
 const path = require('path')
 const hp = require('node-html-parser')
-const { logLine } = require('./utils')
 const injections = require('./injections')
 const { fileExists, clog, log, warn, error, align, randomColor } = require('./utils')
 const _ = require('lodash')
-const chalk = require('chalk')
 // eslint-disable-next-line
 const { trace, thread } = require('./utils')
 
@@ -211,12 +209,12 @@ async function compile (config, browser) {
       log(align('Copying resource:'), `${inp}`)
       const out = inp.replace(config.input, config.output)
       if (await fileExists(out)) {
-        await fs.rm(out, {recursive: true})
+        await fs.rm(out, { recursive: true })
       }
       const dir = path.dirname(out)
       await fs.mkdir(dir, { recursive: true })
       try {
-        await fs.cp(inp, out, {recursive: true})
+        await fs.cp(inp, out, { recursive: true })
       } catch (e) {
         console.log(e)
         warn(align('Couldn\'t copy file:'), `${inp}`)

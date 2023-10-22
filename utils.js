@@ -131,8 +131,8 @@ if (require.main === module) {
 }
 
 function thread (afn) {
-  let ended = false;
-  let promise = (async () => {
+  let ended = false
+  const promise = (async () => {
     // eslint-disable-next-line
     while (!ended) {
       try {

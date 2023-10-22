@@ -21,13 +21,13 @@
 
   window._ConstexprJS_.compile = () => {
     window._ConstexprJS_.deducedExclusions = [
-        ...document.querySelectorAll('[constexpr][src]'),
+      ...document.querySelectorAll('[constexpr][src]')
     ].map(el => el.src)
     document.querySelectorAll('[constexpr]').forEach(
       el => el.remove()
     )
     window._ConstexprJS_.deducedDependencies = [
-      ...document.querySelectorAll('[src]'),
+      ...document.querySelectorAll('[src]')
     ].map(el => el.src)
 
     setTimeout(() => callWhenAvailable(() => window._ConstexprJS_.triggerCompilationHook), 0)

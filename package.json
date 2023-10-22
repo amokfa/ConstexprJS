@@ -1,6 +1,6 @@
 {
   "name": "constexprjs",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "A static site generator without a DSL",
   "homepage": "https://amokfa.github.io/posts/constexprjs",
   "repository": "https://github.com/amokfa/ConstexprJS",
