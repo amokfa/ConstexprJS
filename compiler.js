@@ -1,4 +1,3 @@
-const formatHtml = s => s
 const urljoin = require('url-join')
 const fs = require('fs').promises
 const path = require('path')
@@ -6,6 +5,7 @@ const hp = require('node-html-parser')
 const injections = require('./injections')
 const { fileExists, clog, log, warn, error, align, randomColor } = require('./utils')
 const _ = require('lodash')
+const formatHtml = require('js-beautify').html
 // eslint-disable-next-line
 const { trace, thread } = require('./utils')
 
@@ -19,12 +19,7 @@ async function compileFile (browser, httpBase, jobTimeout, generator, output, id
   await page.send('Runtime.enable')
   await page.send('Network.clearBrowserCache')
 
-  const deps = new Set()
   const killSwitches = [
-    thread(async () => {
-      const { request: { url } } = await page.until('Network.requestWillBeSent')
-      deps.add(url)
-    }),
     thread(async () => {
       const resp = await page.until('Runtime.consoleAPICalled')
       console[resp.type].apply(null, _.concat(generator, ':', resp.args.map((e) => e.value)))
@@ -61,30 +56,17 @@ async function compileFile (browser, httpBase, jobTimeout, generator, output, id
     return result
   }
 
-  result.deducedExclusions = result.deducedExclusions.filter(e => e.startsWith(httpBase)).map(e => e.replace(httpBase, ''))
-
   result.addedPaths.forEach(p => log(`${generator} added extra path ${p.output} to be generated using ${p.generator}`))
 
-  const html = formatHtml(
-    (await page.send('DOM.getOuterHTML', {
-      nodeId: (await page.send('DOM.getDocument')).root.nodeId
-    })).outerHTML,
-    {
-      lineSeparator: '\n'
-    }
-  )
-
+  const html = (await page.send('DOM.getOuterHTML', {
+    nodeId: (await page.send('DOM.getDocument')).root.nodeId
+  })).outerHTML
   await browser.send('Target.closeTarget', { targetId })
-  Promise.all(killSwitches.map(s => s()))
-  result.deducedDependencies.forEach(d => deps.add(d))
-  const allExclusions = [...result.deducedExclusions]
-  allExclusions.push(...result.addedExclusions)
+  await Promise.all(killSwitches.map(s => s()))
 
-  const finalDeps = [...deps]
-    .filter(e => !allExclusions.some(ex => urljoin(httpBase, ex) === e))
+  const finalDeps = result.deducedDependencies
     .filter(e => e.startsWith(httpBase))
     .map(e => e.replace(httpBase, ''))
-    .filter(e => !e.endsWith(generator))
   finalDeps.push(...result.addedDependencies)
   finalDeps.sort()
 
@@ -180,7 +162,13 @@ function mapLinks (html, linkMapping) {
   root.querySelectorAll('a')
     .filter(a => linkMapping[a.getAttribute('href')])
     .forEach(a => a.setAttribute('href', linkMapping[a.getAttribute('href')]))
-  return root.toString()
+  return formatHtml(
+      root.toString(),
+      {
+        unformatted: ['style'],
+        preserve_newlines: false,
+      }
+  )
 }
 
 async function compile (config, browser) {

@@ -20,17 +20,18 @@
   }
 
   window._ConstexprJS_.compile = () => {
-    window._ConstexprJS_.deducedExclusions = [
-      ...document.querySelectorAll('[constexpr][src]')
-    ].map(el => el.src)
     document.querySelectorAll('[constexpr]').forEach(
       el => el.remove()
     )
-    window._ConstexprJS_.deducedDependencies = [
-      ...document.querySelectorAll('[src]')
-    ].map(el => el.src)
 
-    setTimeout(() => callWhenAvailable(() => window._ConstexprJS_.triggerCompilationHook), 0)
+    Array.from(document.querySelectorAll('[src]'))
+        .forEach(el => window._ConstexprJS_.deducedDependencies.push(el.src))
+    Array.from(document.querySelectorAll('link[rel=stylesheet]'))
+        .forEach(el => window._ConstexprJS_.deducedDependencies.push(el.href))
+    Array.from(document.querySelectorAll('link[rel=icon]'))
+        .forEach(el => window._ConstexprJS_.deducedDependencies.push(el.href))
+
+    callWhenAvailable(() => window._ConstexprJS_.triggerCompilationHook)
   }
   window._ConstexprJS_.abort = (message) => {
     callWhenAvailable(() => window._ConstexprJS_.compilationErrorHook, message)
