@@ -25,11 +25,11 @@
     )
 
     Array.from(document.querySelectorAll('[src]'))
-        .forEach(el => window._ConstexprJS_.deducedDependencies.push(el.src))
+      .forEach(el => window._ConstexprJS_.deducedDependencies.push(el.src))
     Array.from(document.querySelectorAll('link[rel=stylesheet]'))
-        .forEach(el => window._ConstexprJS_.deducedDependencies.push(el.href))
+      .forEach(el => window._ConstexprJS_.deducedDependencies.push(el.href))
     Array.from(document.querySelectorAll('link[rel=icon]'))
-        .forEach(el => window._ConstexprJS_.deducedDependencies.push(el.href))
+      .forEach(el => window._ConstexprJS_.deducedDependencies.push(el.href))
 
     callWhenAvailable(() => window._ConstexprJS_.triggerCompilationHook)
   }

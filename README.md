@@ -6,8 +6,7 @@
 <img src="https://img.shields.io/badge/ESLint-Passing-green.svg"/>
 </p>
 
-A static site generator without a templating language. It's a tool that can execute one-shot javascript in your page
-ahead of time, generating light-weight static website.
+Evaluate and strip JS in your website ahead of time.
 
 ## Demo
 

@@ -1,7 +1,7 @@
 {
   "name": "constexprjs",
-  "version": "1.3.1",
-  "description": "A static site generator without a DSL",
+  "version": "1.4.0",
+  "description": "Evaluate and strip JS in your website",
   "homepage": "https://amokfa.github.io/posts/constexprjs",
   "repository": "https://github.com/amokfa/ConstexprJS",
   "main": "compiler.js",

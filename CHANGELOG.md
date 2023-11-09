@@ -1,3 +1,8 @@
+# 1.4.0
+
+* Format output HTML
+* Use only static analysis for finding resource dependencies 
+
 # 1.3.{0,1}
 
 * Dependency resolution bugfix

@@ -163,11 +163,11 @@ function mapLinks (html, linkMapping) {
     .filter(a => linkMapping[a.getAttribute('href')])
     .forEach(a => a.setAttribute('href', linkMapping[a.getAttribute('href')]))
   return formatHtml(
-      root.toString(),
-      {
-        unformatted: ['style'],
-        preserve_newlines: false,
-      }
+    root.toString(),
+    {
+      unformatted: ['style'],
+      preserve_newlines: false
+    }
   )
 }
 

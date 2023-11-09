@@ -71,7 +71,7 @@ async function main () {
 
 function createArgParser () {
   const parser = new ArgumentParser({
-    description: 'A static site generator without a templating language'
+    description: 'Evaluate and strip JS in your website ahead of time'
   })
 
   parser.add_argument('-v', '--version', { action: 'version', version })
