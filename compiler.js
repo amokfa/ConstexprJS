@@ -165,10 +165,11 @@ function mapLinks (html, linkMapping) {
   return formatHtml(
     root.toString(),
     {
-      unformatted: ['style'],
+      unformatted: ['style', 'prog'],
       preserve_newlines: false
     }
   )
+  return root.toString()
 }
 
 async function compile (config, browser) {

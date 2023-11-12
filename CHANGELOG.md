@@ -1,3 +1,7 @@
+# 1.4.1
+
+* Allow users to specify HTML tags whose content shouldn't be formatted
+
 # 1.4.0
 
 * Format output HTML

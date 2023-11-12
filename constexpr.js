@@ -29,6 +29,7 @@ async function main () {
     jobTimeout: argv.jobtimeout * 1000,
     copyResources: !argv.skipResources,
     paths: argv.entryPoints,
+    literalTags: argv.literalTags,
     input: path.resolve(argv.input),
     output: path.resolve(argv.output)
   }
@@ -105,6 +106,12 @@ function createArgParser () {
     help: 'Time in milliseconds for which the compiler will wait for the pages to render',
     type: 'int',
     default: 10
+  })
+  parser.add_argument('--literal-tag', {
+    help: 'HTML tags whose content shouldn\'t be formatted. By default, style tag contents aren\'t formatted',
+    action: 'append',
+    dest: 'literalTags',
+    default: ['style']
   })
   parser.add_argument('--depfile', {
     help: 'A JSON object containing the command line arguments, file dependency, compilation results will be written to this path'
