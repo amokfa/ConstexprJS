@@ -19,5 +19,5 @@ Evaluate and strip JS in your website ahead of time.
 ### Documentation
 
 * Introduction: https://amokfa.github.io/posts/constexprjs.html
-* Hello world: https://amokfa.github.io/tags/constexprjs_hello_world.html
+* Hello world: https://amokfa.github.io/posts/constexprjs_hello_world.html
 * Guides: https://amokfa.github.io/tags/constexprjs.html
